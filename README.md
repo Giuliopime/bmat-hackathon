@@ -43,6 +43,25 @@ Start the development server on `http://localhost:3000`:
 pnpm dev
 ```
 
+## Configuration
+
+Create a `.env` file (or use your hosting provider's secrets UI) with the following variables before running the app:
+
+```bash
+NUXT_SUPABASE_URL=
+NUXT_SUPABASE_SERVICE_KEY=
+NUXT_SPOTIFY_TOKEN=
+NUXT_SPOTIFY_USER_ID=
+NUXT_APPLE_MUSIC_DEVELOPER_TOKEN=
+NUXT_APPLE_MUSIC_USER_TOKEN=
+NUXT_SOUNDCLOUD_TOKEN=
+NUXT_SOUNDCLOUD_CLIENT_ID=
+NUXT_SOUNDCLOUD_USER_ID=
+NUXT_YOUTUBE_API_KEY=
+```
+
+All of these values are read at runtime through `useRuntimeConfig` on the server. None of the secrets are bundled into client code.
+
 ## Production
 
 Build the application for production:

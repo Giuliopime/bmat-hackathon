@@ -1,4 +1,8 @@
 <script setup>
+import { computed } from 'vue'
+
+import { useSoftAuth } from '../composables/useSoftAuth'
+
 useHead({
   meta: [
     { name: 'viewport', content: 'width=device-width, initial-scale=1' }
@@ -11,68 +15,76 @@ useHead({
   }
 })
 
-const title = 'Nuxt Starter Template'
-const description = 'A production-ready starter template powered by Nuxt UI. Build beautiful, accessible, and performant applications in minutes, not hours.'
-
 useSeoMeta({
-  title,
-  description,
-  ogTitle: title,
-  ogDescription: description,
-  ogImage: 'https://ui.nuxt.com/assets/templates/nuxt/starter-light.png',
-  twitterImage: 'https://ui.nuxt.com/assets/templates/nuxt/starter-light.png',
-  twitterCard: 'summary_large_image'
+  title: 'BMAT Tracks',
+  description: 'Internal music sharing playground for BMAT teams.',
+  ogTitle: 'BMAT Tracks',
+  ogDescription: 'Internal music sharing playground for BMAT teams.'
 })
+
+const router = useRouter()
+const { user, isAuthenticated, logout } = useSoftAuth()
+
+const initials = computed(() => {
+  if (!user.value?.name) {
+    return ''
+  }
+
+  return user.value.name
+    .split(' ')
+    .filter(Boolean)
+    .map(part => part[0]?.toUpperCase())
+    .slice(0, 2)
+    .join('')
+})
+
+function handleLogout() {
+  logout()
+  router.push('/login')
+}
 </script>
 
 <template>
   <UApp>
     <UHeader>
       <template #left>
-        <NuxtLink to="/">
-          <AppLogo class="w-auto h-6 shrink-0" />
+        <NuxtLink to="/" class="font-semibold text-lg">
+          BMAT Tracks
         </NuxtLink>
-
-        <TemplateMenu />
       </template>
 
       <template #right>
         <UColorModeButton />
 
+        <div v-if="isAuthenticated" class="flex items-center gap-3">
+          <div class="flex flex-col text-right text-sm">
+            <span class="font-medium">{{ user?.name }}</span>
+            <span class="text-muted">
+              {{ [user?.team, user?.role].filter(Boolean).join(' • ') }}
+            </span>
+          </div>
+          <UAvatar
+            :text="initials"
+            size="md"
+          />
+          <UButton color="neutral" variant="soft" @click="handleLogout">
+            Logout
+          </UButton>
+        </div>
+
         <UButton
-          to="https://github.com/nuxt-ui-templates/starter"
-          target="_blank"
-          icon="i-simple-icons-github"
-          aria-label="GitHub"
+          v-else
           color="neutral"
-          variant="ghost"
-        />
+          variant="soft"
+          to="/login"
+        >
+          Login
+        </UButton>
       </template>
     </UHeader>
 
     <UMain>
       <NuxtPage />
     </UMain>
-
-    <USeparator icon="i-simple-icons-nuxtdotjs" />
-
-    <UFooter>
-      <template #left>
-        <p class="text-sm text-muted">
-          Built with Nuxt UI • © {{ new Date().getFullYear() }}
-        </p>
-      </template>
-
-      <template #right>
-        <UButton
-          to="https://github.com/nuxt-ui-templates/starter"
-          target="_blank"
-          icon="i-simple-icons-github"
-          aria-label="GitHub"
-          color="neutral"
-          variant="ghost"
-        />
-      </template>
-    </UFooter>
   </UApp>
 </template>
