@@ -73,12 +73,10 @@ async function handleSubmit() {
     login({ ...state, name: state.name.trim() })
     toast.add({ title: 'Welcome!', color: 'success' })
     router.push('/')
-  }
-  catch (error) {
+  } catch (error) {
     console.error(error)
     toast.add({ title: 'Login failed', color: 'error' })
-  }
-  finally {
+  } finally {
     loading.value = false
   }
 }
@@ -89,8 +87,12 @@ async function handleSubmit() {
     <UCard class="w-full max-w-xl">
       <template #header>
         <div class="space-y-1">
-          <h1 class="text-2xl font-semibold">Soft login</h1>
-          <p class="text-muted text-sm">Enter your details to access the shared tracklist.</p>
+          <h1 class="text-2xl font-semibold">
+            Login
+          </h1>
+          <p class="text-muted text-sm">
+            Enter your details to access the BMAT shared tracklist.
+          </p>
         </div>
       </template>
 
@@ -99,54 +101,92 @@ async function handleSubmit() {
         class="space-y-4"
         @submit.prevent="handleSubmit"
       >
-        <div class="space-y-2">
-          <label class="text-sm font-medium" for="login-name">Name</label>
-          <UInput id="login-name" v-model="state.name" placeholder="Your full name" required />
+        <div class="space-y-2 flex flex-col">
+          <label
+            class="text-sm font-medium"
+            for="login-name"
+          >Name</label>
+          <UInput
+            id="login-name"
+            v-model="state.name"
+            placeholder="A fancy name"
+            required
+          />
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 gap-4">
           <div class="space-y-2">
-            <label class="text-sm font-medium" for="login-team-select">Team (pick or type)</label>
-            <select
-              id="login-team-select"
-              class="border rounded-md px-3 py-2 w-full bg-transparent"
-              :value="teamOptions.includes(state.team) ? state.team : ''"
-              @change="state.team = ($event.target as HTMLSelectElement).value"
-            >
-              <option value="">Select an existing team</option>
-              <option
-                v-for="team in teamOptions"
-                :key="team"
-                :value="team"
+            <label
+              class="text-sm font-medium"
+              for="login-team-select"
+            >Team (pick or type)</label>
+            <div class="flex gap-4">
+              <select
+                id="login-team-select"
+                class="flex-1 border rounded-md px-3 py-2 w-full bg-transparent"
+                :value="teamOptions.includes(state.team) ? state.team : ''"
+                @change="state.team = ($event.target as HTMLSelectElement).value"
               >
-                {{ team }}
-              </option>
-            </select>
-            <UInput v-model="state.team" placeholder="Or type a new team" required />
+                <option value="">
+                  Select an existing team
+                </option>
+                <option
+                  v-for="team in teamOptions"
+                  :key="team"
+                  :value="team"
+                >
+                  {{ team }}
+                </option>
+              </select>
+              <UInput
+                v-model="state.team"
+                class="flex-1"
+                placeholder="Or type a new team"
+                required
+              />
+            </div>
           </div>
 
           <div class="space-y-2">
-            <label class="text-sm font-medium" for="login-role-select">Role (pick or type)</label>
-            <select
-              id="login-role-select"
-              class="border rounded-md px-3 py-2 w-full bg-transparent"
-              :value="roleOptions.includes(state.role) ? state.role : ''"
-              @change="state.role = ($event.target as HTMLSelectElement).value"
-            >
-              <option value="">Select an existing role</option>
-              <option
-                v-for="role in roleOptions"
-                :key="role"
-                :value="role"
+            <label
+              class="text-sm font-medium"
+              for="login-role-select"
+            >Role (pick or type)</label>
+            <div class="flex gap-4">
+              <select
+                id="login-role-select"
+                class="flex-1 border rounded-md px-3 py-2 w-full bg-transparent"
+                :value="roleOptions.includes(state.role) ? state.role : ''"
+                @change="state.role = ($event.target as HTMLSelectElement).value"
               >
-                {{ role }}
-              </option>
-            </select>
-            <UInput v-model="state.role" placeholder="Or type a new role" required />
+                <option value="">
+                  Select an existing role
+                </option>
+                <option
+                  v-for="role in roleOptions"
+                  :key="role"
+                  :value="role"
+                >
+                  {{ role }}
+                </option>
+              </select>
+              <UInput
+                v-model="state.role"
+                placeholder="Or type a new role"
+                class="flex-1"
+                required
+              />
+            </div>
           </div>
         </div>
 
-        <UButton type="submit" color="primary" :loading="loading" class="w-full">
+        <UButton
+          type="submit"
+          color="primary"
+          :loading="loading"
+					:disabled="!state.team || !state.role || !state.name"
+          class="w-full flex items-center justify-center cursor-pointer"
+        >
           Login
         </UButton>
       </UForm>

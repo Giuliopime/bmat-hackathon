@@ -6,5 +6,6 @@ export interface Playlist {
   apple_music_id: string | null
   spotify_id: string | null
   soundcloud_id: string | null
+  soundcloud_url: string | null
   created_at?: string
 }

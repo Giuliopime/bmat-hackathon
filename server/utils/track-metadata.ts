@@ -18,8 +18,11 @@ interface TrackRecordPayload {
   team: string | null
   role: string | null
   apple_music_id: string | null
+  apple_music_url: string | null
   spotify_uri: string | null
+  spotify_url: string | null
   soundcloud_id: string | null
+  soundcloud_url: string | null
 }
 
 const log = (...args: unknown[]) => console.log('[track-metadata]', ...args)
@@ -55,8 +58,11 @@ export const buildTrackRecord = async (url: string, user: SoftUser): Promise<Tra
     team: user.team,
     role: user.role,
     apple_music_id: base?.appleMusicId ?? apple?.appleMusicId ?? null,
+    apple_music_url: base?.appleMusicUrl ?? apple?.appleMusicUrl ?? null,
     spotify_uri: base?.spotifyUri ?? spotify?.spotifyUri ?? null,
-    soundcloud_id: base?.soundcloudId ?? soundcloud?.soundcloudId ?? null
+    spotify_url: base?.spotifyUrl ?? spotify?.spotifyUrl ?? null,
+    soundcloud_id: base?.soundcloudId ?? soundcloud?.soundcloudId ?? null,
+    soundcloud_url: base?.soundcloudUrl ?? soundcloud?.soundcloudUrl ?? null
   }
 
   log('Final track payload', record)

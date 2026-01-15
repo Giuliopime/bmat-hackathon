@@ -117,12 +117,10 @@ async function submitTrack() {
     await refreshTracks()
     await ensureTeam(user.value.team)
     await ensureRole(user.value.role)
-  }
-  catch (error) {
+  } catch (error) {
     console.error('[Tracks] Failed to add track', error)
     toast.add({ title: 'Unable to add track', color: 'error' })
-  }
-  finally {
+  } finally {
     addTrackLoading.value = false
   }
 }
@@ -153,12 +151,10 @@ async function openPlaylist() {
 
     playlistLinks.value = response.links
     showPlaylistModal.value = true
-  }
-  catch (error) {
+  } catch (error) {
     console.error('[Playlist] Failed to open playlist', error)
     toast.add({ title: 'Failed to open playlist', color: 'error' })
-  }
-  finally {
+  } finally {
     playlistLoading.value = false
   }
 }
@@ -167,38 +163,60 @@ const tracks = computed(() => tracksData.value?.items ?? [])
 </script>
 
 <template>
-  <div class="space-y-6">
-    <section class="flex flex-col gap-4 md:flex-row md:items-end">
+  <div class="space-y-6 px-4 max-w-7xl mx-auto">
+    <section class="flex flex-col gap-4 md:flex-row md:items-end mt-2">
       <div class="flex-1 space-y-2">
-        <label class="text-sm font-medium" for="team-filter">Team filter</label>
+        <label
+          class="text-sm font-medium"
+          for="team-filter"
+        >Team filter</label>
         <select
           id="team-filter"
           v-model="teamFilter"
           class="border rounded-md px-3 py-2 w-full bg-transparent"
         >
-          <option value="">All teams</option>
-          <option v-for="team in teamOptions" :key="team" :value="team">
+          <option value="">
+            All teams
+          </option>
+          <option
+            v-for="team in teamOptions"
+            :key="team"
+            :value="team"
+          >
             {{ team }}
           </option>
         </select>
       </div>
 
       <div class="flex-1 space-y-2">
-        <label class="text-sm font-medium" for="role-filter">Role filter</label>
+        <label
+          class="text-sm font-medium"
+          for="role-filter"
+        >Role filter</label>
         <select
           id="role-filter"
           v-model="roleFilter"
           class="border rounded-md px-3 py-2 w-full bg-transparent"
         >
-          <option value="">All roles</option>
-          <option v-for="role in roleOptions" :key="role" :value="role">
+          <option value="">
+            All roles
+          </option>
+          <option
+            v-for="role in roleOptions"
+            :key="role"
+            :value="role"
+          >
             {{ role }}
           </option>
         </select>
       </div>
 
       <div class="flex gap-2">
-        <UButton color="neutral" variant="soft" @click="showAddTrack = true">
+        <UButton
+          color="neutral"
+          variant="soft"
+          @click="showAddTrack = true"
+        >
           Add track
         </UButton>
         <UButton
@@ -217,18 +235,33 @@ const tracks = computed(() => tracksData.value?.items ?? [])
       <template #header>
         <div class="flex justify-between items-center">
           <div>
-            <h2 class="text-xl font-semibold">Tracks</h2>
-            <p class="text-muted text-sm">Latest submissions from everyone.</p>
+            <h2 class="text-xl font-semibold">
+              Tracks
+            </h2>
+            <p class="text-muted text-sm">
+              Latest submissions from everyone.
+            </p>
           </div>
-          <UBadge color="neutral" variant="soft">{{ tracks.length }} total</UBadge>
+          <UBadge
+            color="neutral"
+            variant="soft"
+          >
+            {{ tracks.length }} total
+          </UBadge>
         </div>
       </template>
 
-      <div v-if="tracksPending" class="py-8 text-center text-muted">
+      <div
+        v-if="tracksPending"
+        class="py-8 text-center text-muted"
+      >
         Loading tracks...
       </div>
 
-      <div v-else-if="tracks.length" class="space-y-4">
+      <div
+        v-else-if="tracks.length"
+        class="space-y-4"
+      >
         <div
           v-for="track in tracks"
           :key="track.id || track.url"
@@ -236,38 +269,60 @@ const tracks = computed(() => tracksData.value?.items ?? [])
         >
           <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <div>
-              <p class="font-medium text-lg">{{ track.title }}</p>
+              <p class="font-medium text-lg">
+                {{ track.title }}
+              </p>
               <p class="text-sm text-muted">
                 Added by {{ track.added_by }}
                 • {{ track.team || 'No team' }}
                 • {{ track.role || 'No role' }}
               </p>
             </div>
-            <UButton
-              color="neutral"
-              variant="soft"
-              :to="track.url"
-              target="_blank"
-            >
-              Open link
-            </UButton>
-          </div>
 
-          <div class="flex flex-wrap gap-2 text-xs">
-            <UBadge v-if="track.apple_music_id" color="primary" variant="soft">
-              Apple {{ track.apple_music_id }}
-            </UBadge>
-            <UBadge v-if="track.spotify_uri" color="neutral" variant="soft">
-              Spotify {{ track.spotify_uri }}
-            </UBadge>
-            <UBadge v-if="track.soundcloud_id" color="warning" variant="soft">
-              SoundCloud {{ track.soundcloud_id }}
-            </UBadge>
+            <div class="flex flex-wrap gap-2">
+              <UButton
+                v-if="track.apple_music_id"
+                label="Apple Music"
+                variant="subtle"
+                size="xs"
+                icon="i-simple-icons-applemusic"
+                class="rounded-full"
+                :to="track.apple_music_url ?? ''"
+                target="_blank"
+              />
+
+              <UButton
+                v-if="track.spotify_uri"
+                label="Spotify"
+                variant="subtle"
+                size="xs"
+                color="success"
+                icon="i-simple-icons-spotify"
+                class="rounded-full"
+                :to="track.spotify_url ?? ''"
+                target="_blank"
+              />
+
+              <UButton
+                v-if="track.soundcloud_id"
+                label="SoundCloud"
+                variant="subtle"
+                size="xs"
+                color="warning"
+                icon="i-simple-icons-soundcloud"
+                class="rounded-full"
+                :to="track.soundcloud_url ?? ''"
+                target="_blank"
+              />
+            </div>
           </div>
         </div>
       </div>
 
-      <div v-else class="text-center text-muted py-4">
+      <div
+        v-else
+        class="text-center text-muted py-4"
+      >
         No tracks yet. Be the first to add one!
       </div>
     </UCard>
@@ -277,22 +332,43 @@ const tracks = computed(() => tracksData.value?.items ?? [])
         <UCard class="w-full max-w-2xl">
           <template #header>
             <div>
-              <h3 class="text-lg font-semibold">Add track</h3>
-              <p class="text-sm text-muted">Paste a Spotify, Apple Music, SoundCloud, or YouTube link.</p>
+              <h3 class="text-lg font-semibold">
+                Add track
+              </h3>
+              <p class="text-sm text-muted">
+                Paste a Spotify, Apple Music, SoundCloud, or YouTube link.
+              </p>
             </div>
           </template>
 
           <UForm @submit.prevent="submitTrack">
-            <div class="space-y-2">
-              <label class="text-sm font-medium" for="new-track-url">Track link</label>
-              <UInput id="new-track-url" v-model="newTrackUrl" placeholder="https://" required />
+            <div class="space-y-2 flex flex-col">
+              <label
+                class="text-sm font-medium"
+                for="new-track-url"
+              >Track link</label>
+              <UInput
+                id="new-track-url"
+                v-model="newTrackUrl"
+                placeholder="https://"
+                required
+              />
             </div>
 
             <div class="mt-6 flex justify-end gap-2">
-              <UButton color="neutral" variant="soft" @click="showAddTrack = false">
+              <UButton
+                color="neutral"
+                variant="soft"
+                @click="showAddTrack = false"
+              >
                 Cancel
               </UButton>
-              <UButton type="submit" color="primary" :loading="addTrackLoading">
+              <UButton
+                type="submit"
+                color="primary"
+                :loading="addTrackLoading"
+                :disabled="!newTrackUrl"
+              >
                 Save
               </UButton>
             </div>
@@ -303,37 +379,70 @@ const tracks = computed(() => tracksData.value?.items ?? [])
 
     <UModal v-model:open="showPlaylistModal">
       <template #content>
-        <UCard class="w-full max-w-xl">
+        <UCard class="w-full max-w-xl mx-auto">
           <template #header>
-            <h3 class="text-lg font-semibold">Playlist links</h3>
+            <h3 class="text-lg font-semibold text-center">
+              Playlist links
+            </h3>
           </template>
 
-          <div class="space-y-3">
-            <div v-if="playlistLinks?.spotify" class="flex justify-between items-center">
-              <span>Spotify</span>
-              <UButton :to="playlistLinks.spotify" target="_blank" color="neutral" variant="soft">
-                Open playlist
+          <div class="flex items-center justify-center gap-4">
+            <div
+              v-if="playlistLinks?.spotify"
+              class="flex justify-between items-center"
+            >
+              <UButton
+                :to="playlistLinks.spotify"
+                target="_blank"
+                color="success"
+                variant="soft"
+                icon="i-simple-icons-spotify"
+              >
+                Spotify
               </UButton>
             </div>
-            <div v-if="playlistLinks?.apple" class="flex justify-between items-center">
-              <span>Apple Music</span>
-              <UButton :to="playlistLinks.apple" target="_blank" color="neutral" variant="soft">
-                Open playlist
+            <div
+              v-if="playlistLinks?.apple"
+              class="flex justify-between items-center"
+            >
+              <UButton
+                :to="playlistLinks.apple"
+                target="_blank"
+                variant="soft"
+								icon="i-simple-icons-applemusic"
+              >
+                Apple Music
               </UButton>
             </div>
-            <div v-if="playlistLinks?.soundcloud" class="flex justify-between items-center">
-              <span>SoundCloud</span>
-              <UButton :to="playlistLinks.soundcloud" target="_blank" color="neutral" variant="soft">
-                Open playlist
+            <div
+              v-if="playlistLinks?.soundcloud"
+              class="flex justify-between items-center"
+            >
+              <UButton
+                :to="playlistLinks.soundcloud"
+                target="_blank"
+                color="warning"
+                variant="soft"
+								icon="i-simple-icons-soundcloud"
+              >
+                SoundCloud
               </UButton>
             </div>
-            <div v-if="!playlistLinks?.spotify && !playlistLinks?.apple && !playlistLinks?.soundcloud" class="text-center text-muted">
+            <div
+              v-if="!playlistLinks?.spotify && !playlistLinks?.apple && !playlistLinks?.soundcloud"
+              class="text-center text-muted"
+            >
               No playlist links were generated.
             </div>
           </div>
 
           <template #footer>
-            <UButton block color="primary" @click="showPlaylistModal = false">
+            <UButton
+              block
+              color="neutral"
+							variant="soft"
+              @click="showPlaylistModal = false"
+            >
               Close
             </UButton>
           </template>

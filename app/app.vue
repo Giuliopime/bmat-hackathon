@@ -48,25 +48,20 @@ function handleLogout() {
   <UApp>
     <UHeader>
       <template #left>
+				<UColorModeButton />
+
         <NuxtLink to="/" class="font-semibold text-lg">
           BMAT Tracks
         </NuxtLink>
       </template>
 
       <template #right>
-        <UColorModeButton />
-
         <div v-if="isAuthenticated" class="flex items-center gap-3">
           <div class="flex flex-col text-right text-sm">
-            <span class="font-medium">{{ user?.name }}</span>
             <span class="text-muted">
-              {{ [user?.team, user?.role].filter(Boolean).join(' • ') }}
+              {{ [user?.name, user?.team, user?.role].filter(Boolean).join(' • ') }}
             </span>
           </div>
-          <UAvatar
-            :text="initials"
-            size="md"
-          />
           <UButton color="neutral" variant="soft" @click="handleLogout">
             Logout
           </UButton>

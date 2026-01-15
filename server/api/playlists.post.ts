@@ -67,13 +67,13 @@ export default defineEventHandler(async (event) => {
 
   const config = useRuntimeConfig()
 
-  const [spotifyId, appleId, soundcloudId] = await Promise.all([
+  const [spotifyId, appleId, soundcloudData] = await Promise.all([
     spotifyUris.length ? createSpotifyPlaylist(playlistName, spotifyUris, config.spotifyToken, config.spotifyUserId) : Promise.resolve(null),
     appleIds.length ? createApplePlaylist(playlistName, appleIds, config.appleMusicDeveloperToken, config.appleMusicUserToken) : Promise.resolve(null),
     soundcloudIds.length ? createSoundcloudPlaylist(playlistName, soundcloudIds, config.soundcloudToken) : Promise.resolve(null)
   ])
 
-  console.log('[playlists.post] Playlist IDs', { spotifyId, appleId, soundcloudId })
+  console.log('[playlists.post] Playlist IDs', { spotifyId, appleId, soundcloudId: soundcloudData?.id })
 
   const { data: created, error: insertError } = await supabase
     .from('playlists')
@@ -83,7 +83,8 @@ export default defineEventHandler(async (event) => {
       role,
       spotify_id: spotifyId,
       apple_music_id: appleId,
-      soundcloud_id: soundcloudId
+      soundcloud_id: soundcloudData?.id,
+      soundcloud_url: soundcloudData?.url
     })
     .select('*')
     .single()
@@ -105,6 +106,6 @@ const buildLinks = (playlist: Playlist) => {
   return {
     spotify: playlist.spotify_id ? `https://open.spotify.com/playlist/${playlist.spotify_id}` : null,
     apple: playlist.apple_music_id ? `https://music.apple.com/library/playlist/${playlist.apple_music_id}` : null,
-    soundcloud: playlist.soundcloud_id ? `https://soundcloud.com/iuliopime/sets/${playlist.soundcloud_id}` : null
+    soundcloud: playlist.soundcloud_url
   }
 }

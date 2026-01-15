@@ -11,8 +11,11 @@ export interface TrackIdentity {
   title: string
   artist?: string
   spotifyUri?: string | null
+  spotifyUrl?: string | null
   appleMusicId?: string | null
+  appleMusicUrl?: string | null
   soundcloudId?: string | null
+  soundcloudUrl?: string | null
 }
 
 const safeFetch = async <T>(handler: () => Promise<T>): Promise<T | null> => {
@@ -87,7 +90,7 @@ export const searchSpotifyTrack = async (query: string, token?: string): Promise
     return null
   }
   return safeFetch(async () => {
-    const data = await $fetch<{ tracks: { items: Array<{ name: string; artists: Array<{ name: string }>; uri: string }> } }>(`${SPOTIFY_API}/search`, {
+    const data = await $fetch<{ tracks: { items: Array<{ name: string; artists: Array<{ name: string }>; uri: string, external_urls: { spotify: string } }> } }>(`${SPOTIFY_API}/search`, {
       query: {
         q: query,
         type: 'track',
@@ -106,7 +109,8 @@ export const searchSpotifyTrack = async (query: string, token?: string): Promise
     return {
       title: item.name,
       artist: item.artists?.[0]?.name,
-      spotifyUri: item.uri
+      spotifyUri: item.uri,
+      spotifyUrl: item.external_urls.spotify
     } satisfies TrackIdentity
   })
 }
@@ -125,7 +129,8 @@ export const createSpotifyPlaylist = async (name: string, trackUris: string[], t
         public: false
       },
       headers: {
-        Authorization: `Bearer ${token}`
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
       }
     })
 
@@ -150,13 +155,24 @@ export const createSpotifyPlaylist = async (name: string, trackUris: string[], t
 
 // Apple helpers
 const extractAppleId = (url: string) => {
+  // 1. Prefer track ID (?i=...)
+  const trackMatch = url.match(/[?&]i=(\d+)/)
+  if (trackMatch) {
+    return trackMatch[1]
+  }
+
+  // 2. Fallback: last numeric path segment
   const segments = url.split('/')
   const last = segments.pop()
-  if (last && /^\d+$/.test(last)) {
-    return last
+
+  if (last) {
+    const cleanLast = last.split('?')[0]
+    if (/^\d+$/.test(cleanLast)) {
+      return cleanLast
+    }
   }
-  const queryMatch = url.match(/[?&]i=(\d+)/)
-  return queryMatch?.[1] ?? null
+
+  return null
 }
 
 const getAppleStorefront = (url: string) => {
@@ -174,7 +190,7 @@ export const fetchAppleMetadataFromUrl = async (url: string, developerToken?: st
     return null
   }
   return safeFetch(async () => {
-    const data = await $fetch<{ data: Array<{ id: string; attributes: { name: string; artistName: string } }> }>(`${APPLE_MUSIC_API}/catalog/${storefront}/songs/${id}`, {
+    const data = await $fetch<{ data: Array<{ id: string; attributes: { name: string; artistName: string, url: string } }> }>(`${APPLE_MUSIC_API}/catalog/${storefront}/songs/${id}`, {
       headers: {
         Authorization: `Bearer ${developerToken}`
       }
@@ -188,7 +204,8 @@ export const fetchAppleMetadataFromUrl = async (url: string, developerToken?: st
     return {
       title: item.attributes.name,
       artist: item.attributes.artistName,
-      appleMusicId: item.id
+      appleMusicId: item.id,
+      appleMusicUrl: item.attributes.url
     } satisfies TrackIdentity
   })
 }
@@ -198,7 +215,7 @@ export const searchAppleTrack = async (query: string, developerToken?: string): 
     return null
   }
   return safeFetch(async () => {
-    const data = await $fetch<{ results: { songs: { data: Array<{ id: string; attributes: { name: string; artistName: string } }> } } }>(`${APPLE_MUSIC_API}/catalog/us/search`, {
+    const data = await $fetch<{ results: { songs: { data: Array<{ id: string, attributes: { name: string, artistName: string, url: string } }> } } }>(`${APPLE_MUSIC_API}/catalog/us/search`, {
       query: {
         term: query,
         types: 'songs',
@@ -217,7 +234,8 @@ export const searchAppleTrack = async (query: string, developerToken?: string): 
     return {
       title: item.attributes.name,
       artist: item.attributes.artistName,
-      appleMusicId: item.id
+      appleMusicId: item.id,
+      appleMusicUrl: item.attributes.url
     } satisfies TrackIdentity
   })
 }
@@ -314,15 +332,7 @@ export const searchSoundcloudTrack = async (query: string, clientId?: string, to
     return null
   }
 
-  const fetchWithClientId = () => $fetch<Array<{ title: string; user: { username: string }; id: number }>>(`${SOUNDCLOUD_API}/tracks`, {
-    query: {
-      q: query,
-      client_id: clientId,
-      limit: 1
-    }
-  })
-
-  const fetchWithToken = () => $fetch<Array<{ title: string; user: { username: string }; id: number }>>(`${SOUNDCLOUD_API}/tracks`, {
+  const fetchWithToken = () => $fetch<Array<{ title: string; user: { username: string }; id: number, permalink_url: string }>>(`${SOUNDCLOUD_API}/tracks`, {
     query: {
       q: query,
       limit: 1
@@ -332,13 +342,9 @@ export const searchSoundcloudTrack = async (query: string, clientId?: string, to
     }
   })
 
-  let data: Array<{ title: string; user: { username: string }; id: number }> | null = null
+  let data: Array<{ title: string; user: { username: string }; id: number, permalink_url: string }> | null = null
 
-  if (clientId) {
-    data = await safeFetch(fetchWithClientId)
-  }
-
-  if (!data && token) {
+  if (token) {
     data = await safeFetch(fetchWithToken)
   }
 
@@ -355,17 +361,18 @@ export const searchSoundcloudTrack = async (query: string, clientId?: string, to
   return {
     title: item.title,
     artist: item.user?.username,
-    soundcloudId: String(item.id)
+    soundcloudId: String(item.id),
+    soundcloudUrl: String(item.permalink_url)
   } satisfies TrackIdentity
 }
 
-export const createSoundcloudPlaylist = async (name: string, trackIds: string[], token?: string): Promise<string | null> => {
+export const createSoundcloudPlaylist = async (name: string, trackIds: string[], token?: string): Promise<{ id: string | null, url: string } | null> => {
   if (!token) {
     return null
   }
 
   return safeFetch(async () => {
-    const playlist = await $fetch<{ id: number }>(`${SOUNDCLOUD_API}/playlists`, {
+    const playlist = await $fetch<{ id: string, permalink_url: string }>(`${SOUNDCLOUD_API}/playlists`, {
       method: 'POST',
       headers: {
         Authorization: `OAuth ${token}`
@@ -379,7 +386,10 @@ export const createSoundcloudPlaylist = async (name: string, trackIds: string[],
       }
     })
 
-    return String(playlist.id)
+    return {
+      id: playlist.id,
+      url: playlist.permalink_url
+    }
   })
 }
 
@@ -405,8 +415,10 @@ export const fetchYouTubeMetadataFromUrl = async (url: string, apiKey?: string):
     const data = await $fetch<{ items: Array<{ snippet: { title: string, channelTitle: string } }> }>(`${YOUTUBE_API}/videos`, {
       query: {
         id,
-        part: 'snippet',
-        key: apiKey
+        part: 'snippet'
+      },
+      headers: {
+        Authorization: `Bearer ${apiKey}`
       }
     })
 
