@@ -1,0 +1,12 @@
+services:
+  playlist_app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+    # Mounts local files to container for "hot reloading"
+    volumes:
+      - ./:/app
+      - /app/node_modules
+    command: pnpm run dev
